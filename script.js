@@ -39,10 +39,9 @@ function updateMatchCountDisplay(current, total) {
 function removeHighlights() {
     const highlightedElements = poetryContentDiv.querySelectorAll('.highlight');
     highlightedElements.forEach(span => {
-        // 將高亮元素的文本節點替換其父節點中的 span 元素
         const parent = span.parentNode;
-        // 使用 replaceWith() 更直接地替換元素
         if (parent) {
+            // 用 span 裡面的文本替換整個 span 元素
             span.replaceWith(document.createTextNode(span.textContent));
         }
     });
@@ -55,7 +54,7 @@ function removeHighlights() {
 }
 
 /**
- * 函數：執行內容內搜尋並高亮匹配項
+ * 函數：執行內容內搜尋並高亮匹配項 (性能優化版)
  */
 function performInPageSearch() {
     const searchTerm = searchInput.value.trim();
@@ -72,23 +71,54 @@ function performInPageSearch() {
         return;
     }
 
-    // 重新載入原始文本到 DOM，然後再進行高亮
-    // 這樣確保每次搜尋都是基於乾淨的文本
-    poetryContentDiv.innerHTML = rawPoetryText.replace(/\n/g, '<br>');
+    const searchRegex = new RegExp(searchTerm, 'gi'); // 全局、不區分大小寫搜尋
 
-    // 創建正規表達式，使用捕獲組以便於替換為高亮標籤
-    const searchRegex = new RegExp(`(${searchTerm})`, 'gi');
+    // 遍歷 poetryContentDiv 的所有子節點，查找文本節點進行替換
+    // 我們需要一個函數來遞歸遍歷所有子節點
+    function highlightNode(node) {
+        if (node.nodeType === Node.TEXT_NODE) { // 如果是文本節點
+            const text = node.nodeValue;
+            const matches = [...text.matchAll(searchRegex)]; // 找到所有匹配
 
-    // 使用一個臨時的 div 來處理 innerHTML 的替換，避免直接操作主內容導致 DOM 閃爍
-    const tempDiv = document.createElement('div');
-    tempDiv.innerHTML = poetryContentDiv.innerHTML; // 獲取當前已處理換行符的內容
+            if (matches.length > 0) {
+                const fragment = document.createDocumentFragment();
+                let lastIndex = 0;
 
-    let newHtml = tempDiv.innerHTML.replace(searchRegex, '<span class="highlight">$&</span>');
+                matches.forEach(match => {
+                    // 添加匹配前的文本
+                    if (match.index > lastIndex) {
+                        fragment.appendChild(document.createTextNode(text.substring(lastIndex, match.index)));
+                    }
+                    // 添加高亮後的文本
+                    const span = document.createElement('span');
+                    span.className = 'highlight';
+                    span.textContent = match[0];
+                    fragment.appendChild(span);
+                    highlightedMatches.push(span); // 收集高亮元素
+                    lastIndex = match.index + match[0].length;
+                });
 
-    poetryContentDiv.innerHTML = newHtml; // 更新頁面內容
+                // 添加匹配後的剩餘文本
+                if (lastIndex < text.length) {
+                    fragment.appendChild(document.createTextNode(text.substring(lastIndex)));
+                }
 
-    // 收集所有高亮元素
-    highlightedMatches = Array.from(poetryContentDiv.querySelectorAll('.highlight'));
+                node.parentNode.replaceChild(fragment, node); // 替換原始文本節點
+            }
+        } else if (node.nodeType === Node.ELEMENT_NODE && node.nodeName !== 'SCRIPT' && node.nodeName !== 'STYLE') { // 如果是元素節點，且不是script/style標籤
+            // 避免遞歸到已經被高亮的元素內部，或者避免無限遞歸
+            if (!node.classList.contains('highlight') && node.children.length > 0) {
+                // 克隆子節點列表，因為在遍歷過程中會修改 DOM
+                const childNodes = Array.from(node.childNodes);
+                childNodes.forEach(highlightNode);
+            }
+        }
+    }
+
+    // 開始遍歷主內容區
+    highlightNode(poetryContentDiv);
+
+
     currentMatchIndex = -1; // 重置索引
 
     if (highlightedMatches.length > 0) {
@@ -155,7 +185,7 @@ async function fetchAndDisplayPoetry() {
         }
         rawPoetryText = await response.text();
         console.log('詩歌檔案載入成功！');
-        // 將原始文本內容（處理換行符）直接顯示到頁面上
+        // 首次載入時，直接將原始文本內容（處理換行符）顯示到頁面上
         poetryContentDiv.innerHTML = rawPoetryText.replace(/\n/g, '<br>');
 
         // 首次載入時清空搜尋輸入框
@@ -171,7 +201,7 @@ async function fetchAndDisplayPoetry() {
 
 // 頁面載入完成後執行
 document.addEventListener('DOMContentLoaded', () => {
-    fetchAndDisplayPoetry(); // 載入詩歌文本
+    fetchAndDisplayPoetry(); // 在 DOM 載入後立即開始載入詩歌文本
 
     // 搜尋輸入框的鍵盤事件 (Enter 鍵)
     if (searchInput) {
