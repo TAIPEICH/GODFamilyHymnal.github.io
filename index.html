@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>詩歌查看器</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            margin: 0;
+            padding: 20px;
+            background-color: #f0f2f5;
+            color: #333;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        header {
+            width: 100%;
+            max-width: 800px;
+            text-align: center;
+            margin-bottom: 30px;
+            padding: 20px;
+            background-color: #ffffff;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+        }
+
+        h1 {
+            color: #2c3e50;
+            margin-bottom: 20px;
+            font-size: 2em;
+        }
+
+        .search-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        #searchInput {
+            padding: 12px 15px;
+            width: 70%;
+            max-width: 400px;
+            border: 1px solid #ced4da;
+            border-radius: 6px;
+            font-size: 1em;
+            outline: none;
+            transition: border-color 0.3s ease;
+        }
+        #searchInput:focus {
+            border-color: #007bff;
+            box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
+        }
+
+        #searchButton {
+            padding: 12px 20px;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 1em;
+            transition: background-color 0.3s ease;
+        }
+        #searchButton:hover {
+            background-color: #0056b3;
+        }
+
+        .search-nav {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 10px;
+            margin-top: 15px;
+            /* 預設隱藏，只有搜尋有結果時才顯示 */
+            display: none;
+        }
+
+        .search-nav button {
+            padding: 8px 15px;
+            background-color: #28a745;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 0.9em;
+            transition: background-color 0.3s ease;
+        }
+        .search-nav button:hover {
+            background-color: #218838;
+        }
+
+        #matchCount {
+            font-weight: bold;
+            color: #6c757d;
+            font-size: 0.9em;
+        }
+
+        main {
+            width: 100%;
+            max-width: 800px;
+            padding: 25px;
+            background-color: #ffffff;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+            overflow-y: auto; /* 允許內容滾動 */
+            max-height: calc(100vh - 200px); /* 設置最大高度，讓其可滾動 */
+            border: 1px solid #e9ecef;
+        }
+
+        /* 高亮樣式 */
+        .highlight {
+            background-color: #ffe082; /* 淺黃色 */
+            font-weight: bold;
+            padding: 1px 3px;
+            border-radius: 3px;
+        }
+
+        /* 當前活動匹配的高亮樣式 */
+        .active-highlight {
+            background-color: #ffb300; /* 亮橘色 */
+            border: 1px solid #e65100; /* 橘紅色邊框 */
+            color: #333; /* 確保文本可讀 */
+        }
+
+        /* 如果文本中有換行符，保持排版 */
+        #poetryContent {
+            white-space: pre-wrap;
+            font-size: 1.1em;
+            line-height: 1.8;
+            word-wrap: break-word; /* 防止長單詞溢出 */
+        }
+
+        .loading-message {
+            text-align: center;
+            font-size: 1.2em;
+            color: #888;
+        }
+
+        footer {
+            margin-top: 30px;
+            padding: 10px;
+            color: #6c757d;
+            font-size: 0.8em;
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>詩歌文本查看器</h1>
+        <div class="search-container">
+            <input type="text" id="searchInput" placeholder="輸入關鍵字搜尋...">
+            <button id="searchButton">搜尋</button>
+        </div>
+        <div class="search-nav" id="navButtons">
+            <button id="prevMatchButton">上一個</button>
+            <span id="matchCount">0/0</span>
+            <button id="nextMatchButton">下一個</button>
+        </div>
+    </header>
+
+    <main id="mainContent">
+        <div id="poetryContent" class="loading-message">
+            載入詩歌中...
+        </div>
+    </main>
+
+    <footer>
+        <p>&copy; 2025 詩歌查看器. All rights reserved.</p>
+    </footer>
+
+    <script src="script.js"></script>
+</body>
+</html>
