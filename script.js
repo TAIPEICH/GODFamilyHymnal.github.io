@@ -149,7 +149,7 @@ function navigateToPrevMatch() {
  */
 async function fetchAndDisplayPoetry() {
     try {
-        const response = await fetch('卓文的神家詩歌20240412.txt'); // <--- 請確保這裡的文件名和您的txt文件一致
+        const response = await fetch('God's Family Hymnal.txt'); // <--- 請確保這裡的文件名和您的txt文件一致
         if (!response.ok) {
             throw new Error(`無法載入詩歌檔案: ${response.statusText}`);
         }
